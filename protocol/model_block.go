@@ -13,6 +13,12 @@ func Uint16FromStr(s string) uint16 {
 	return uint16(n)
 }
 
+// Float64FromStr 解析字符串为 float64, 失败/空返回 0。
+func Float64FromStr(s string) float64 {
+	f, _ := strconv.ParseFloat(strings.TrimSpace(s), 64)
+	return f
+}
+
 // 板块文件协议（地域/板块/概念/指数）。参考 pytdx get_block_info + block_reader。
 const (
 	TypeBlockMeta uint16 = 0x02C5 // 板块文件元信息（大小）

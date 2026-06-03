@@ -54,6 +54,13 @@ func main() {
 	logs.PanicErr(os.WriteFile(filepath.Join(dir, "tdxzs.parsed.txt"), []byte(sb.String()), 0644))
 	logs.Infof("解析 tdxzs.cfg %d 个板块指数 → %s/tdxzs.parsed.txt\n", len(zs), dir)
 
+	// 3b. 解析 tdxstat/tdxstat2/xgsg
+	stat := protocol.ParseTdxStat(files[protocol.FileTdxStat])
+	stat2 := protocol.ParseTdxStat2(files[protocol.FileTdxStat2])
+	xgsg := protocol.ParseXgsg(files[protocol.FileXgsg])
+	s2bk := protocol.StockBlockIndex(stat2)
+	dumpStat(dir, stat, stat2, xgsg, s2bk)
+
 	// 4. 下载板块成分并回填 id
 	for _, bf := range []string{protocol.BlockFileZS, protocol.BlockFileGN, protocol.BlockFileFG} {
 		blocks, err := c.GetBlockData(bf)
@@ -71,4 +78,35 @@ func main() {
 		logs.PanicErr(os.WriteFile(filepath.Join(dir, bf+".withid.txt"), []byte(b.String()), 0644))
 		logs.Infof("%-14s %d 板块, id 命中 %d → %s/%s.withid.txt\n", bf, len(blocks), matched, dir, bf)
 	}
+}
+
+func dumpStat(dir string, stat []*protocol.TdxStat, stat2 []*protocol.TdxStat2, xgsg []*protocol.TdxXgsg, s2bk map[string]string) {
+	var b strings.Builder
+	fmt.Fprintf(&b, "tdxstat.cfg 个股综合统计, 共 %d 只\n\n", len(stat))
+	for i, v := range stat {
+		if i >= 20 {
+			break
+		}
+		fmt.Fprintf(&b, "%d|%s 日期=%s 全字段=%s\n", v.Market, v.Code, v.Date, strings.Join(v.Fields, "|"))
+	}
+	logs.PanicErr(os.WriteFile(filepath.Join(dir, "tdxstat.parsed.txt"), []byte(b.String()), 0644))
+
+	b.Reset()
+	fmt.Fprintf(&b, "tdxstat2.cfg 资金流向+板块归属, 共 %d 只\n\n", len(stat2))
+	for i, v := range stat2 {
+		if i >= 20 {
+			break
+		}
+		fmt.Fprintf(&b, "%d|%s 日期=%s 所属板块id=%s\n", v.Market, v.Code, v.Date, v.BlockIndex)
+	}
+	logs.PanicErr(os.WriteFile(filepath.Join(dir, "tdxstat2.parsed.txt"), []byte(b.String()), 0644))
+	logs.Infof("tdxstat %d 只, tdxstat2 %d 只, 股→板块映射 %d 条\n", len(stat), len(stat2), len(s2bk))
+
+	b.Reset()
+	fmt.Fprintf(&b, "xgsg.cfg 新股申购, 共 %d 只\n\n", len(xgsg))
+	for _, v := range xgsg {
+		fmt.Fprintf(&b, "%d|%s %s 申购日=%s 发行价=%.3f\n", v.Market, v.Code, v.Name, v.Date, v.IssuePrice)
+	}
+	logs.PanicErr(os.WriteFile(filepath.Join(dir, "xgsg.parsed.txt"), []byte(b.String()), 0644))
+	logs.Infof("xgsg %d 只新股申购 → %s/xgsg.parsed.txt\n", len(xgsg), dir)
 }

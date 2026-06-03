@@ -630,6 +630,46 @@ func (this *Client) GetBlockDataWithIndex(file string) ([]*protocol.Block, error
 	return blocks, nil
 }
 
+// GetTdxStat 下载并解析 tdxstat.cfg(来自 zhb.zip) → 全市场个股综合统计指标。
+func (this *Client) GetTdxStat() ([]*protocol.TdxStat, error) {
+	files, err := this.GetZHBFiles()
+	if err != nil {
+		return nil, err
+	}
+	data, ok := files[protocol.FileTdxStat]
+	if !ok {
+		return nil, fmt.Errorf("%s 中缺少 %s", protocol.ReportZHB, protocol.FileTdxStat)
+	}
+	return protocol.ParseTdxStat(data), nil
+}
+
+// GetTdxStat2 下载并解析 tdxstat2.cfg(来自 zhb.zip) → 全市场个股资金流向 + 板块归属。
+// 其 BlockIndex 字段提供 股→板块指数代码(id) 的反向映射(见 protocol.StockBlockIndex)。
+func (this *Client) GetTdxStat2() ([]*protocol.TdxStat2, error) {
+	files, err := this.GetZHBFiles()
+	if err != nil {
+		return nil, err
+	}
+	data, ok := files[protocol.FileTdxStat2]
+	if !ok {
+		return nil, fmt.Errorf("%s 中缺少 %s", protocol.ReportZHB, protocol.FileTdxStat2)
+	}
+	return protocol.ParseTdxStat2(data), nil
+}
+
+// GetXgsg 下载并解析 xgsg.cfg(来自 zhb.zip) → 新股申购列表。
+func (this *Client) GetXgsg() ([]*protocol.TdxXgsg, error) {
+	files, err := this.GetZHBFiles()
+	if err != nil {
+		return nil, err
+	}
+	data, ok := files[protocol.FileXgsg]
+	if !ok {
+		return nil, fmt.Errorf("%s 中缺少 %s", protocol.ReportZHB, protocol.FileXgsg)
+	}
+	return protocol.ParseXgsg(data), nil
+}
+
 // GetTdxHy 下载并解析 tdxhy.cfg → 每只股票的通达信/申万行业归属。
 func (this *Client) GetTdxHy() ([]*protocol.TdxHy, error) {
 	buf, err := this.GetBlockFileRaw(protocol.FileTdxHy)
