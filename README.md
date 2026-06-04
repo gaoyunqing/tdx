@@ -117,11 +117,11 @@ _ = zs; _ = bk
 来自 `zhb.zip` 的全市场逐股数据。`tdxstat.cfg` 字段经 10 只大市值股对照实盘核验(见 `protocol/model_stat.go` 命中率注释)，未核验字段保留在 `Fields`。
 
 ```go
-// 个股综合统计: 市盈TTM/静态市盈/股息率/涨跌幅/连涨连跌天数(均已核验)
+// 个股综合统计: 市盈TTM/静态市盈/股息率/涨跌幅/连涨连跌天数/区间涨跌幅(5/10/20/60日/YTD, 均已核验)
 stat, _ := c.GetTdxStat()
 for _, s := range stat {
-	fmt.Printf("%s PE_TTM=%.2f 静PE=%.2f 股息=%.2f%% 连涨跌=%d\n",
-		s.Code, s.PETTM, s.PEStatic, s.DivYield, s.TrendDays)
+	fmt.Printf("%s PE_TTM=%.2f 静PE=%.2f 股息=%.2f%% 连涨跌=%d 5日=%.2f%% 20日=%.2f%% YTD=%.2f%%\n",
+		s.Code, s.PETTM, s.PEStatic, s.DivYield, s.TrendDays, s.Chg5, s.Chg20, s.ChgYTD)
 }
 
 // 资金流向 + 板块归属(股→板块id 反向映射)
