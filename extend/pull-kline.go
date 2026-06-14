@@ -75,19 +75,13 @@ func (this *PullKline) Run(m *tdx.Manage) error {
 }
 
 func (this *PullKline) Update(m *tdx.Manage) error {
-	codes := this.Config.Codes
-	if len(codes) == 0 {
-		codes = m.Codes.GetStockCodes()
+	updated, err := this.Updated.Updated("pull")
+	if err != nil {
+		return err
 	}
-	if updated, err := this.Updated.Updated("pull"); err != nil || !updated {
-		if err := this.update(m); err != nil {
-			return err
-		}
+	if updated {
+		return nil
 	}
-	return nil
-}
-
-func (this *PullKline) update(m *tdx.Manage) error {
 	codes := this.Config.Codes
 	if len(codes) == 0 {
 		codes = m.Codes.GetStockCodes()
@@ -106,7 +100,8 @@ func (this *PullKline) update(m *tdx.Manage) error {
 			}
 		}
 	}
-	return nil
+	err = this.Updated.Update("pull")
+	return err
 }
 
 func (this *PullKline) Name() string {
@@ -339,7 +334,7 @@ func (this *PullKline) updateMinuteKlineYear(m *tdx.Manage, code string, year in
 
 	if len(ks) == 0 {
 		err = m.Do(func(c *tdx.Client) error {
-			resp, err := c.GetKlineMinuteUntil(code, func(k *protocol.Kline) bool {
+			resp, err := c.GetKlineMinute241Until(code, func(k *protocol.Kline) bool {
 				return k.Time.Before(last.Time)
 			})
 			if err != nil {
