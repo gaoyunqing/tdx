@@ -30,6 +30,7 @@
 | 财务信息           | ✅ 已完成 | `GetFinanceInfo`                               |
 | F10 公司资料       | ✅ 已完成 | `GetCompanyCategory` `GetCompanyContent`        |
 | 板块成分(地域/概念/指数) | ✅ 已完成 | `GetBlockData` `GetBlockDataWithIndex`          |
+| 大型指数成分(中证2000等) | ✅ 已完成 | `GetSpBlock`                                    |
 | 行业归属(通达信/申万)   | ✅ 已完成 | `GetTdxHy`                                      |
 | 报表/配置文件下载      | ✅ 已完成 | `GetReportFile` `GetZHBFiles`                   |
 | 板块指数代码(id)映射   | ✅ 已完成 | `GetTdxZs` `GetTdxBk`                           |
@@ -90,6 +91,27 @@ for _, b := range blocks {
 plain, _ := c.GetBlockData(protocol.BlockFileGN)
 _ = plain
 ```
+
+### 大型指数成分(中证2000/1000/500/A500/国证2000)
+
+`block_zs.dat` 单板块成分上限 400，装不下中证2000/1000/500 等大型指数，服务端把它们放在文本文件 `spblock.dat`（无上限），用 `GetSpBlock` 获取。
+
+> **沪深300** 例外：仍在 `block_zs.dat`，用 `GetBlockData(protocol.BlockFileZS)` 取（成分 300）。
+
+```go
+// 专业板块: 中证2000/中证1000/中证500/中证A500/国证2000/深证成指 等
+sp, _ := c.GetSpBlock()
+for _, b := range sp {
+	fmt.Printf("板块=%s 成分数=%d\n", b.Name, len(b.Codes)) // Codes 7字符: 市场(0深/1沪/2北)+代码
+}
+
+// 按名取中证2000成分
+if b := protocol.SpBlockByName(sp, "中证2000"); b != nil {
+	fmt.Printf("中证2000 成分数=%d\n", len(b.Codes)) // 2000
+}
+```
+
+> 演示: [`example/GetSpBlock`](example/GetSpBlock)。
 
 ---
 

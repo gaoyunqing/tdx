@@ -684,6 +684,23 @@ func (this *Client) GetXgsg() ([]*protocol.TdxXgsg, error) {
 	return protocol.ParseXgsg(data), nil
 }
 
+// GetSpBlock 下载并解析 spblock.dat(来自 zhb.zip) → 专业板块成分列表。
+//
+// spblock.dat 承载 block_zs.dat 无法容纳的大型指数成分, 如
+// 中证2000/中证1000/中证500/中证A500/国证2000/深证成指 等(block_*.dat 单板块成分上限 400)。
+// 用 protocol.SpBlockByName 按名取单个板块。注意: 沪深300 不在此文件, 在 block_zs.dat(见 GetBlockData)。
+func (this *Client) GetSpBlock() ([]*protocol.SpBlock, error) {
+	files, err := this.GetZHBFiles()
+	if err != nil {
+		return nil, err
+	}
+	data, ok := files[protocol.FileSpBlock]
+	if !ok {
+		return nil, fmt.Errorf("%s 中缺少 %s", protocol.ReportZHB, protocol.FileSpBlock)
+	}
+	return protocol.ParseSpBlock(data), nil
+}
+
 // GetTdxHy 下载并解析 tdxhy.cfg → 每只股票的通达信/申万行业归属。
 func (this *Client) GetTdxHy() ([]*protocol.TdxHy, error) {
 	buf, err := this.GetBlockFileRaw(protocol.FileTdxHy)
